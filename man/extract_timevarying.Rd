@@ -5,25 +5,26 @@
 \title{Extract & Reshape Timevarying Dateitems}
 \usage{
 extract_timevarying(
-  connection,
+  connection = NULL,
   episode_ids = NULL,
-  code_names,
-  rename = as.character(NA),
+  code_names = as.character(NA),
+  rename_as = as.character(NA),
   coalesce_rows = dplyr::first,
   chunk_size = 5000,
   cadance = 1,
-  time_boundaries = c(-Inf, Inf)
+  time_boundaries = c(-Inf, Inf),
+  debug = FALSE
 )
 }
 \arguments{
 \item{connection}{a CC-HIC database connection}
 
-\item{episode_ids}{an integer/character vector of episode_ids or NULL. If NULL (the
-default) then all episodes are extracted.}
+\item{episode_ids}{an integer/character vector of episode_ids or NULL. If
+NULL (the default) then all episodes are extracted.}
 
 \item{code_names}{a vector of CC-HIC codes names to be extracted}
 
-\item{rename}{a character vector of names you want to relabel CC-HIC codes
+\item{rename_as}{a character vector of names you want to relabel CC-HIC codes
 as, or NULL (the default) if you do not want to relabel. Given in the same
 order as \code{code_names}}
 
@@ -75,8 +76,8 @@ Where you are extacting at a resolution lower than is recorded in the
 database, you can specify a summary function with the \code{coalesce_rows}
 argument. This argument takes a summary function as an argument, for example,
 'mean' and will apply this behaviour to the specified data items in the
-database. These summary functions must *always* return
-a vector of length 1, and must be able to handle vectors entirely with NAs.
+database. These summary functions must *always* return a vector of length 1,
+and must be able to handle vectors entirely with NAs.
 
 Choose what variables you want to pull out wisely. This function is actually
 quite efficient considering what it needs to do, but it can take a very long

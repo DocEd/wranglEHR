@@ -17,10 +17,13 @@ LazyData: true
 Imports:
     dbplyr,
     dplyr,
-    DBI,
-    purrr
-RoxygenNote: 7.0.2
+    purrr,
+    tidyr,
+    tibble,
+    rlang
+RoxygenNote: 7.1.1
 Suggests:
+    DBI,
     praise,
     covr,
     testthat

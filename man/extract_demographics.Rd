@@ -7,8 +7,9 @@
 extract_demographics(
   connection = NULL,
   episode_ids = NULL,
-  code_names = NULL,
-  rename = NULL
+  code_names = as.character(NA),
+  rename_as = as.character(NA),
+  debug = FALSE
 )
 }
 \arguments{
@@ -19,7 +20,7 @@ that you want to extact. The default (NULL) is to extract all.}
 
 \item{code_names}{a character vector of CC-HIC codes}
 
-\item{rename}{a character vector of names you want to relabel CC-HIC codes
+\item{rename_as}{a character vector of names you want to relabel CC-HIC codes
 as, or NULL (the default) if you do not want to relabel.}
 }
 \value{

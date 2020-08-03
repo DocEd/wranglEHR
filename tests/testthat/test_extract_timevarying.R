@@ -2,21 +2,24 @@ context("Extract Timevarying")
 
 library(wranglEHR)
 
-db_pth <- system.file("testdata/synthetic_db.sqlite3", package = "inspectEHR")
-ctn <- connect(sqlite_file = db_pth)
-core <- make_core(ctn)
-hic_codes <- "NIHR_HIC_ICU_0409"
-new_labels <- "apache_score"
-dtb <- extract_demographics(ctn, episode_ids = 13639:13643, hic_codes, new_labels)
-DBI::dbDisconnect(ctn)
+df <- extract_timevarying(debug = TRUE)
 
 test_that("Table properties are correct", {
-  expect_true(class(dtb)[1] == "1-dim")
-  expect_equal(dim(dtb), c(5, 2))
-  expect_equal(names(dtb), c("episode_id", "apache_score"))
-  expect_true(class(attr(dtb, "lookups"))[1] == "tbl_df")
-  expect_equal(dim(attr(dtb, "lookups")), c(1, 2))
-  expect_equal(names(attr(dtb, "lookups")), c("codes", "names"))
+  expect_identical(class(df), c("tbl_df", "tbl", "data.frame"))
+  expect_identical(dim(df), c(1540L, 6L))
+  expect_true(all(
+    names(df) %in%
+    c("time", "NIHR_HIC_ICU_0108", "NIHR_HIC_ICU_0116_1",
+      "NIHR_HIC_ICU_0116_3", "NIHR_HIC_ICU_0126", "episode_id")))
 })
 
+df2 <- extract_timevarying(debug = TRUE, cadance = 24)
 
+test_that("Coalese rows works correctly", {
+  expect_identical(class(df2), c("tbl_df", "tbl", "data.frame"))
+  expect_identical(dim(df2), c(140L, 6L))
+  expect_true(all(
+    names(df2) %in%
+      c("time", "NIHR_HIC_ICU_0108", "NIHR_HIC_ICU_0116_1",
+        "NIHR_HIC_ICU_0116_3", "NIHR_HIC_ICU_0126", "episode_id")))
+})

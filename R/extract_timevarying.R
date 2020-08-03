@@ -19,8 +19,8 @@
 #' database, you can specify a summary function with the \code{coalesce_rows}
 #' argument. This argument takes a summary function as an argument, for example,
 #' 'mean' and will apply this behaviour to the specified data items in the
-#' database. These summary functions must *always* return
-#' a vector of length 1, and must be able to handle vectors entirely with NAs.
+#' database. These summary functions must *always* return a vector of length 1,
+#' and must be able to handle vectors entirely with NAs.
 #'
 #' Choose what variables you want to pull out wisely. This function is actually
 #' quite efficient considering what it needs to do, but it can take a very long
@@ -38,10 +38,10 @@
 #' to determine how best they wish to account for this.
 #'
 #' @param connection a CC-HIC database connection
-#' @param episode_ids an integer/character vector of episode_ids or NULL. If NULL (the
-#'   default) then all episodes are extracted.
+#' @param episode_ids an integer/character vector of episode_ids or NULL. If
+#'   NULL (the default) then all episodes are extracted.
 #' @param code_names a vector of CC-HIC codes names to be extracted
-#' @param rename a character vector of names you want to relabel CC-HIC codes
+#' @param rename_as a character vector of names you want to relabel CC-HIC codes
 #'   as, or NULL (the default) if you do not want to relabel. Given in the same
 #'   order as \code{code_names}
 #' @param coalesce_rows a function vector of the summary functions that you want
@@ -71,7 +71,8 @@
 #' @importFrom purrr map imap
 #' @importFrom lubridate now
 #' @importFrom rlang inform abort .data
-#' @importFrom dplyr select distinct collect distinct_at first tbl bind_rows pull
+#' @importFrom dplyr select distinct collect distinct_at first tbl bind_rows
+#'   pull n arrange rename vars mutate_at group_by summarise_at
 #' @importFrom tibble tibble
 #' @importFrom magrittr `%>%`
 #'
@@ -89,14 +90,37 @@
 #' DBI::dbDisconnect(ctn)
 extract_timevarying <- function(connection = NULL,
                                 episode_ids = NULL,
-                                code_names,
-                                rename = as.character(NA),
+                                code_names = as.character(NA),
+                                rename_as = as.character(NA),
                                 coalesce_rows = dplyr::first,
                                 chunk_size = 5000,
                                 cadance = 1,
-                                time_boundaries = c(-Inf, Inf)) {
+                                time_boundaries = c(-Inf, Inf),
+                                debug = FALSE) {
+
   if (is.null(connection)) {
-    rlang::inform()
+    if (debug == TRUE) {
+      rlang::inform("Starting debugging mode")
+      episode_ids <- episodes$episode_id
+      code_names <- c("NIHR_HIC_ICU_0108", "NIHR_HIC_ICU_0116", "NIHR_HIC_ICU_0126")
+    } else {
+      rlang::abort("no connection supplied")
+    }
+  }
+
+  if (debug == FALSE) {
+    events <- tbl(connection, "events")
+    variables <- collect(tbl(connection, "variables"))
+  }
+
+  if (any(!is.na(rename_as))) {
+    renaming_len <- length(rename_as) == length(code_names)
+    if (!renaming_len) {
+      rlang::abort(
+        "when renaming variables, you must supply equal length character vectors
+        for `code_names` and `rename_as`"
+      )
+    }
   }
 
   starting <- Sys.time()
@@ -124,26 +148,25 @@ extract_timevarying <- function(connection = NULL,
 
   params <- tibble(
     code_names = code_names,
-    short_names = rename,
+    short_names = rename_as,
     func = c(coalesce_rows)
   )
 
-  episode_groups <- tbl(connection, "events") %>%
-    select(episode_id) %>%
+  episode_groups <- events %>%
+    select(.data$episode_id) %>%
     distinct() %>%
     collect()
 
   if (!is.null(episode_ids)) {
-    episode_groups <- filter(episode_groups, episode_id %in% episode_ids)
+    episode_groups <- episode_groups %>%
+      filter(episode_id %in% episode_ids)
   }
-
-  mdata <- collect(tbl(connection, "variables"))
 
   episode_groups <- episode_groups %>%
     mutate(group = as.integer(seq(n()) / chunk_size)) %>%
     split(., .$group) %>%
     map(function(epi_ids) {
-      collect_events <- tbl(connection, "events") %>%
+      collect_events <- events %>%
         filter(.data$code_name %in% exons,
                .data$episode_id %in% !!epi_ids$episode_id) %>%
         collect()
@@ -153,7 +176,7 @@ extract_timevarying <- function(connection = NULL,
         distinct() %>%
         pull(), process_all,
       events = collect_events,
-      metadata = mdata,
+      metadata = variables,
       cadance = cadance,
       coalesce_rows = params,
       time_boundaries = time_boundaries
@@ -162,7 +185,7 @@ extract_timevarying <- function(connection = NULL,
     }) %>%
     bind_rows()
 
-  if (!all(is.na(rename))) {
+  if (!all(is.na(rename_as))) {
     for (i in seq_len(nrow(params))) {
       names(episode_groups) <- gsub(
         pattern = params$code_names[i],
@@ -172,20 +195,21 @@ extract_timevarying <- function(connection = NULL,
     }
   }
 
-  if (all(is.na(rename))) {
+  if (all(is.na(rename_as))) {
     lookups <- tibble(codes = code_names,
                       names = code_names)
   } else {
     lookups <- tibble(codes = code_names,
-                      names = rename)
+                      names = rename_as)
   }
 
   attr(episode_groups, "lookups") <- lookups
 
-  elapsed_time <- signif(
-    as.numeric(
-      difftime(
-        Sys.time(), starting, units = "hour")), 2)
+  elapsed_time <- Sys.time() %>%
+    difftime(starting, units = "hour") %>%
+    as.numeric() %>%
+    signif(2)
+
   inform(paste(elapsed_time, "hours to process"))
 
   if (requireNamespace("praise", quietly = TRUE)) {
@@ -361,7 +385,7 @@ find_2d <- function(metadata) {
     dplyr::mutate(nas = metadata %>%
       dplyr::select(-code_name, -long_name, -primary_column) %>%
       collect() %>%
-      tibble::as.tibble() %>%
+      tibble::as_tibble() %>%
       apply(1, function(x) sum(!is.na(x)))) %>%
     dplyr::filter(nas > 1) %>%
     dplyr::select(code_name, primary_column)

@@ -8,14 +8,14 @@
 #' @param episode_ids an integer vector of episode ids from the CC-HIC DB
 #'   that you want to extact. The default (NULL) is to extract all.
 #' @param code_names a character vector of CC-HIC codes
-#' @param rename a character vector of names you want to relabel CC-HIC codes
+#' @param rename_as a character vector of names you want to relabel CC-HIC codes
 #'   as, or NULL (the default) if you do not want to relabel.
 #'
 #' @export
 #'
 #' @importFrom dplyr collect select mutate filter inner_join full_join if_else
-#'   summarise_all select_if
-#' @importFrom tidyr spread
+#'   summarise_all select_if tbl
+#' @importFrom tidyr pivot_wider
 #' @importFrom tibble as_tibble
 #' @importFrom purrr reduce
 #' @importFrom rlang !!! inform abort warn .data
@@ -29,45 +29,74 @@
 #' extract_demographics(ctn, episode_ids = 13639:13643, hic_codes, new_labels)
 #' DBI::dbDisconnect(ctn)
 extract_demographics <- function(connection = NULL, episode_ids = NULL,
-                                 code_names = NULL, rename = NULL) {
-  stopifnot(!any(is.null(connection), is.null(code_names)))
+                                 code_names = as.character(NA),
+                                 rename_as = as.character(NA),
+                                 debug = FALSE) {
 
-  if (!is.null(episode_ids) && class(episode_ids) != "integer") {
+  if (is.null(connection)) {
+    if (debug == TRUE) {
+      rlang::inform("Starting debugging mode")
+      episode_ids <- episodes$episode_id
+    } else {
+      rlang::abort("no connection supplied")
+    }
+  }
+
+  if (debug == FALSE) {
+    variables <- tbl(connection, "variables")
+    events <- tbl(connection, "events")
+  }
+
+
+  if (!is.null(episode_ids) & class(episode_ids) != "integer") {
     rlang::abort(
       "`episode_ids` must be given as NULL (the default) or an
       integer vector of episode ids")
   }
 
-  tbls <- retrieve_tables(connection)
+  if (any(!is.na(rename_as))) {
+    renaming_len <- length(rename_as) == length(code_names)
+    if (!renaming_len) {
+      rlang::abort(
+        "when renaming variables, you must supply equal length character vectors
+        for `code_names` and `rename_as`"
+      )
+    }
+  }
 
-  demographics <- tbls[["variables"]] %>%
+  demographics <- variables %>%
     collect() %>%
-    mutate(nas = tbls[["variables"]] %>%
+    mutate(nas = variables %>%
       select(-.data$code_name, -.data$long_name, -.data$primary_column) %>%
       collect() %>%
-      tibble::as_tibble() %>%
+      as_tibble() %>%
       apply(1, function(x) sum(!is.na(x)))) %>%
     filter(.data$nas == 1) %>%
     select(.data$code_name, .data$primary_column)
 
   all_demographic_codes <- demographics$code_name
-  extract_codes <- all_demographic_codes[all_demographic_codes %in% code_names]
 
-  if (length(extract_codes) != length(code_names)) {
+  if (all(is.na(code_names))) {
+    extract_codes <- all_demographic_codes
+  } else {
+    extract_codes <- all_demographic_codes[all_demographic_codes %in% code_names]
+  }
+
+  if (length(unique(code_names)) > length(all_demographic_codes)) {
     rlang::warn(
-      "You are trying to extract non-1d data.
+      "It looks like you are trying to extract non-demographic data.
       Consider using `extract_timevarying()`")
   }
 
   if (is.null(episode_ids)) {
-    tb_base <- tbls[["events"]] %>%
+    tb_base <- events %>%
       select(.data$episode_id, .data$code_name, .data$integer,
              .data$string, .data$real, .data$date, .data$time,
              .data$datetime) %>%
       filter(.data$code_name %in% extract_codes) %>%
       collect()
   } else {
-    tb_base <- tbls[["events"]] %>%
+    tb_base <- events %>%
       select(.data$episode_id, .data$code_name, .data$integer,
              .data$string, .data$real, .data$date, .data$time,
              .data$datetime) %>%
@@ -78,59 +107,54 @@ extract_demographics <- function(connection = NULL, episode_ids = NULL,
 
   complete_fields <- tb_base %>%
     select(-.data$episode_id, -.data$code_name) %>%
-    dplyr::select_if(function(x) !(all(is.na(x)))) %>%
+    dplyr::select_if(~ any(!is.na(.))) %>%
     names()
 
-  tb_segments <- vector(mode = "list", length = length(complete_fields))
+  tb_segments <- complete_fields %>%
+    map(~ extract_demographics_helper(
+      tb_base,
+      .x,
+      demographics))
 
-  for (i in seq_along(complete_fields)) {
-    tb_segments[[i]] <- extract_demographics_helper(
-      tb_base, complete_fields[i], demographics)
-  }
-
-  db_1 <- purrr::reduce(
+  db_1 <- reduce(
     tb_segments,
     full_join,
     by = "episode_id"
   )
 
-  if (!is.null(rename)) {
+  if (any(!is.na(rename_as))) {
     replacement_names <- rename[match(names(db_1), code_names)]
     names(db_1) <- if_else(
       is.na(replacement_names), names(db_1), replacement_names)
   }
 
-  if (is.null(rename)) {
+  if (any(!is.na(rename_as))) {
     lookups <- tibble(codes = code_names,
                       names = code_names)
   } else {
     lookups <- tibble(codes = code_names,
-                      names = rename)
+                      names = rename_as)
   }
 
   attr(db_1, "lookups") <- lookups
-  class(db_1) <- append(class(db_1), "1-dim", after = 0)
-
   return(db_1)
 }
 
 
-#' @importFrom rlang .data !! enquo
+#' @importFrom rlang .data
 #' @importFrom dplyr select inner_join filter
-#' @importFrom tidyr spread
-#' @importFrom magrittr %>%
+#' @importFrom tidyr pivot_wider
+#' @importFrom magrittr `%>%`
 extract_demographics_helper <- function(tb_base, col_name, demographics) {
-  quo_column <- enquo(col_name)
 
-  tb_section <- tb_base %>%
-    select(.data$code_name, !!quo_column, .data$episode_id) %>%
-    inner_join(
-      demographics %>%
-        filter(.data$primary_column == !!quo_column),
-      by = "code_name"
-    ) %>%
-    select(-.data$primary_column) %>%
-    spread(key = code_name, value = !!quo_column)
+    tb_base %>%
+      select(.data$code_name, .data$episode_id, col_name) %>%
+      inner_join(
+        demographics %>%
+          filter(.data$primary_column == col_name),
+        by = "code_name"
+      ) %>%
+      select(-.data$primary_column) %>%
+      pivot_wider(names_from = "code_name", values_from = col_name)
 
-  return(tb_section)
 }

@@ -195,3 +195,37 @@ episodes <- episodes %>%
   select(-site, -icu)
 
 use_data(episodes, events, provenance, variables, internal = TRUE, overwrite = TRUE)
+
+## Will write this data out, for the purposes of vignettes and demo
+
+cchic_demo <- DBI::dbConnect(RSQLite::SQLite(), "./data-raw/synthetic_db.sqlite3")
+
+## Variables ====
+
+DBI::dbWriteTable(
+  conn = cchic_demo,
+  name = "variables",
+  value = variables, append = TRUE)
+
+## Provenance
+
+DBI::dbWriteTable(
+  conn = cchic_demo,
+  name = "provenance",
+  value = provenance, append = TRUE)
+
+## Episodes ====
+
+DBI::dbWriteTable(
+  conn = cchic_demo,
+  name = "episodes",
+  value = episodes, append = TRUE)
+
+## Events ====
+
+DBI::dbWriteTable(
+  conn = cchic_demo,
+  name = "events",
+  value = events, append = TRUE)
+
+DBI::dbDisconnect(cchic_demo)

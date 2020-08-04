@@ -123,7 +123,7 @@ extract_demographics <- function(connection = NULL, episode_ids = NULL,
   )
 
   if (any(!is.na(rename_as))) {
-    replacement_names <- rename[match(names(db_1), code_names)]
+    replacement_names <- rename_as[match(names(db_1), code_names)]
     names(db_1) <- if_else(
       is.na(replacement_names), names(db_1), replacement_names)
   }

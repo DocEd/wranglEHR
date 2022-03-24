@@ -1,0 +1,37 @@
+Package: wranglEHR
+Type: Package
+Title: Standardised Data Extraction and Wrangling
+Version: 1.0.0
+Authors@R: c(
+    person("Edward", "Palmer",
+    role = c("aut", "cre"),
+    email = "edward.palmer@ucl.ac.uk",
+    comment = c(ORCID = "0000-0002-8024-4616"))
+    )
+Description: This package extracts, transforms and cleans CC-HIC data.
+License: GPL-3
+Depends:
+    R (>= 3.4.0)
+Encoding: UTF-8
+LazyData: true
+Imports:
+    commonEHR,
+    dbplyr,
+    dplyr,
+    DBI,
+    purrr,
+    lubridate,
+    magrittr,
+    rlang,
+    tibble,
+    tidyr,
+    hms
+RoxygenNote: 7.1.1
+Suggests:
+    praise,
+    covr,
+    testthat,
+    knitr
+VignetteBuilder: knitr
+URL: https://github.com/CC-HIC/wranglEHR
+BugReports: https://github.com/CC-HIC/wranglEHR/issues

@@ -116,6 +116,60 @@ extract_demographics <- function(connection = NULL,
     by = "episode_id",
     .init = tibble::tibble(episode_id = as.integer(NULL))
   )
+  
+  ## Need to modify column classes if pulling from SQLite
+  date_codes <- demographics$code_name[demographics$primary_column == "date"]
+  datetime_codes <- demographics$code_name[demographics$primary_column == "datetime"]
+  time_codes <- demographics$code_name[demographics$primary_column == "time"]
+    
+  if (any(names(db_1) %in% date_codes)) {
+    
+    date_codes <- date_codes[which(date_codes %in% names(db_1))]
+    
+    db_1 <- db_1 %>%
+      mutate(
+        across(date_codes, function(x) {
+          if (class(x) == "character") {
+            return(as.Date(x))
+          } else {
+            return(x)
+          }
+        }))
+    
+  }
+  
+  if (any(names(db_1) %in% datetime_codes)) {
+    
+    datetime_codes <- datetime_codes[which(datetime_codes %in% names(db_1))]
+  
+    db_1 <- db_1 %>%
+      mutate(
+        across(datetime_codes, function(x) {
+          if (class(x) == "character") {
+            return(as.POSIXct(x))
+          } else {
+            return(x)
+          }
+        }))
+    
+  }
+  
+  if (any(names(db_1) %in% time_codes)) {
+    
+    time_codes <- time_codes[which(time_codes %in% names(db_1))]
+    
+    db_1 <- db_1 %>%
+      mutate(
+        across(time_codes, function(x) {
+          if (class(x) == "character") {
+            return(hms::as_hms(x))
+          } else {
+            return(x)
+          }
+        })
+    )
+    
+  }
 
   if (!is.null(rename)) {
     replacement_names <- rename[match(names(db_1), code_names)]

@@ -8,8 +8,7 @@ extract_demographics(
   connection = NULL,
   episode_ids = NA_integer_,
   code_names = NA_character_,
-  rename = NA_character_,
-  .debug = FALSE
+  rename = NA_character_
 )
 }
 \arguments{

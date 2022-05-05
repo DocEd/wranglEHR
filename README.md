@@ -39,28 +39,50 @@ remotes::install_github("DocEd/wranglEHR")
 
 ``` r
 library(wranglEHR)
+```
 
-# Connect to the database
-ctn <- DBI::dbConnect()
+``` r
+# Connect to the database (will use the internal test db)
+ctn <- setup_dummy_db()
 
 # Extract static variables. Rename on the fly.
 dtb <- extract_demographics(
   connection = ctn,
-  episode_ids = 13639:13643, # specify for episodes
+  episode_ids = 1:10, # specify for episodes
   code_names = c("NIHR_HIC_ICU_0017", "NIHR_HIC_ICU_0019"),
   rename = c("height", "weight")
 )
 
 head(dtb)
+#> # A tibble: 6 × 2
+#>   episode_id height
+#>        <int>  <dbl>
+#> 1          1  2.34 
+#> 2          2  2.01 
+#> 3          3  4.00 
+#> 4          4 -0.318
+#> 5          5  2.44 
+#> # … with 1 more row
 
 # Extract time varying variables. Rename on the fly.
 ltb <- extract_timevarying(
   ctn,
-  episode_ids = 13639:13643,
+  episode_ids = 1:10,
   code_names = "NIHR_HIC_ICU_0108",
   rename = "hr")
+#> 0.00029 hours to process
+#> YEAH! How best was that?!
 
 head(ltb)
+#> # A tibble: 6 × 3
+#>   episode_id  time    hr
+#>        <int> <dbl> <int>
+#> 1          1     0    91
+#> 2          1     1    78
+#> 3          1     2   102
+#> 4          1     3    94
+#> 5          1     4    69
+#> # … with 1 more row
 
 # Pull out to any arbitrary temporal resolution and custom define the
 # behaviour for information recorded at resolution higher than you are sampling.
@@ -68,15 +90,26 @@ head(ltb)
 
 ltb_2 <- extract_timevarying(
   ctn,
-  episode_ids = 13639:13643,
+  episode_ids = 1:10,
   code_names = "NIHR_HIC_ICU_0108",
   rename = "hr",
-  cadance = 2, # 1 row every 2 hours
+  cadence = 2, # 1 row every 2 hours
   coalesce_rows = mean, # use mean to downsample to our 2 hour cadence
   time_boundaries = c(0, 24)
   )
+#> 0.00031 hours to process
+#> YOW! How best was that?!
 
 head(ltb_2)
+#> # A tibble: 6 × 3
+#>   episode_id  time    hr
+#>        <int> <dbl> <dbl>
+#> 1          1     0  84.5
+#> 2          1     2 102  
+#> 3          1     4  81.3
+#> 4          1     6  80  
+#> 5          1     8  80.3
+#> # … with 1 more row
 
 ## Don't forget to turn the lights out as you leave.
 DBI::dbDisconnect(ctn)

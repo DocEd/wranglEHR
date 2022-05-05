@@ -48,16 +48,22 @@ remotes::install_github("DocEd/wranglEHR")
 
 ## Usage
 
-```{r, eval = FALSE}
-library(wranglEHR)
+```{r, include = FALSE}
+devtools::load_all()
+```
 
-# Connect to the database
-ctn <- DBI::dbConnect()
+```r
+library(wranglEHR)
+```
+
+```{r}
+# Connect to the database (will use the internal test db)
+ctn <- setup_dummy_db()
 
 # Extract static variables. Rename on the fly.
 dtb <- extract_demographics(
   connection = ctn,
-  episode_ids = 13639:13643, # specify for episodes
+  episode_ids = 1:10, # specify for episodes
   code_names = c("NIHR_HIC_ICU_0017", "NIHR_HIC_ICU_0019"),
   rename = c("height", "weight")
 )
@@ -67,7 +73,7 @@ head(dtb)
 # Extract time varying variables. Rename on the fly.
 ltb <- extract_timevarying(
   ctn,
-  episode_ids = 13639:13643,
+  episode_ids = 1:10,
   code_names = "NIHR_HIC_ICU_0108",
   rename = "hr")
 
@@ -79,10 +85,10 @@ head(ltb)
 
 ltb_2 <- extract_timevarying(
   ctn,
-  episode_ids = 13639:13643,
+  episode_ids = 1:10,
   code_names = "NIHR_HIC_ICU_0108",
   rename = "hr",
-  cadance = 2, # 1 row every 2 hours
+  cadence = 2, # 1 row every 2 hours
   coalesce_rows = mean, # use mean to downsample to our 2 hour cadence
   time_boundaries = c(0, 24)
   )

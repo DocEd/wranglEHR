@@ -2,6 +2,10 @@
 #' 
 #' Creates an in-memory SQLite database for testing purposes
 #'
+#' @importFrom DBI dbConnect dbWriteTable
+#' @importFrom RSQLite SQLite
+#' @importFrom dplyr mutate
+#'
 #'
 #' @return an SQLite in-memory database
 #' @export
@@ -9,27 +13,27 @@ setup_dummy_db <- function() {
   
   conn <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
   
-  events <- wranglEHR:::.events %>%
+  events <- .events %>%
     dplyr::mutate(
       datetime = strftime(datetime),
       date = strftime(date, format = "%Y-%m-%d"),
       time = strftime(time, format = "%H:%M:%S")) %>%
     DBI::dbWriteTable(conn, "events", .)
   
-  episodes <- wranglEHR:::.episodes %>%
+  episodes <- .episodes %>%
     dplyr::mutate(
       start_date = strftime(start_date)
     ) %>%
     DBI::dbWriteTable(conn, "episodes", .)
   
-  provenance <- wranglEHR:::.provenance %>%
+  provenance <- .provenance %>%
     dplyr::mutate(
       date_created = strftime(date_created),
       date_parsed = strftime(date_parsed),
     ) %>%
     DBI::dbWriteTable(conn, "provenance", .)
   
-  variables <- DBI::dbWriteTable(conn, "variables", wranglEHR:::.variables)
+  variables <- DBI::dbWriteTable(conn, "variables", .variables)
   
   return(conn)
   

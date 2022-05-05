@@ -36,10 +36,13 @@
 extract_demographics <- function(connection = NULL,
                                  episode_ids = NA_integer_,
                                  code_names = NA_character_,
-                                 rename = NA_character_,
-                                 .debug = FALSE) {
+                                 rename = NA_character_
+                                 #,.debug = FALSE
+                                 ) {
 
-  if (is.null(connection) && !.debug) {
+  if (is.null(connection)
+      #&& !.debug
+      ) {
     abort("You must supply a database connection")
   }
 
@@ -50,13 +53,13 @@ extract_demographics <- function(connection = NULL,
 
   code_names <- unique(code_names)
 
-  if (.debug) {
-    variables <- .variables
-    events <- .events
-  } else {
+  #if (.debug) {
+  #  variables <- .variables
+  #  events <- .events
+  #} else {
     variables <- tbl(connection, "variables")
     events <- tbl(connection, "events")
-  }
+  #}
 
   demographics <- variables %>%
     collect() %>%

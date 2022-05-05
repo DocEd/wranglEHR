@@ -7,6 +7,7 @@
 
 [![Lifecycle
 Status](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/)
+[![R-CMD-check](https://github.com/DocEd/wranglEHR/workflows/R-CMD-check/badge.svg)](https://github.com/DocEd/wranglEHR/actions)
 <!-- badges: end -->
 
 ## Overview

@@ -1,3 +1,41 @@
+#' Setip Dummy DB
+#' 
+#' Creates an in-memory SQLite database for testing purposes
+#'
+#'
+#' @return an SQLite in-memory database
+#' @export
+setup_dummy_db <- function() {
+  
+  conn <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+  
+  events <- wranglEHR:::.events %>%
+    dplyr::mutate(
+      datetime = strftime(datetime),
+      date = strftime(date, format = "%Y-%m-%d"),
+      time = strftime(time, format = "%H:%M:%S")) %>%
+    DBI::dbWriteTable(conn, "events", .)
+  
+  episodes <- wranglEHR:::.episodes %>%
+    dplyr::mutate(
+      start_date = strftime(start_date)
+    ) %>%
+    DBI::dbWriteTable(conn, "episodes", .)
+  
+  provenance <- wranglEHR:::.provenance %>%
+    dplyr::mutate(
+      date_created = strftime(date_created),
+      date_parsed = strftime(date_parsed),
+    ) %>%
+    DBI::dbWriteTable(conn, "provenance", .)
+  
+  variables <- DBI::dbWriteTable(conn, "variables", wranglEHR:::.variables)
+  
+  return(conn)
+  
+}
+
+
 #' Retrieve DB Tables
 #'
 #' @param connection a DBI database object

@@ -21,9 +21,6 @@ that you want to extact. The default (NULL) is to extract all.}
 
 \item{rename}{a character vector of names you want to relabel CC-HIC codes
 as, or NULL (the default) if you do not want to relabel.}
-
-\item{.debug}{logical flag. If \code{TRUE} the function will extract from
-internal package test data}
 }
 \value{
 A tibble of 1d data
@@ -36,11 +33,11 @@ row per patient and 1 column per data item.
 \examples{
 hic_codes <- "NIHR_HIC_ICU_0409"
 new_labels <- "apache_score"
+con <- setup_dummy_db()
 dtb <- extract_demographics(
-  connection = NULL,
+  connection = con,
   episode_ids = 1:10,
-  hic_codes,
-  new_labels,
-  .debug = TRUE)
+  code_names = hic_codes,
+  rename = new_labels)
 head(dtb)
 }

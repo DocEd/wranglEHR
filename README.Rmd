@@ -20,6 +20,7 @@ options(tibble.print_min = 5, tibble.print_max = 5)
 
 <!-- badges: start -->
 [![Lifecycle Status](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/)
+[![R-CMD-check](https://github.com/DocEd/wranglEHR/workflows/R-CMD-check/badge.svg)](https://github.com/DocEd/wranglEHR/actions)
 <!-- badges: end -->
 
 ## Overview

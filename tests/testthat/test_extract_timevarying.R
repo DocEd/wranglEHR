@@ -2,28 +2,29 @@
 hic_codes <- c("NIHR_HIC_ICU_0108", "NIHR_HIC_ICU_0126")
 new_labels <- c("heart_rate", "airway")
 
+con <- setup_dummy_db()
 
 test_that("Errors are captured", {
   expect_error(extract_timevarying())
-  expect_error(extract_timevarying(.debug = TRUE, code_names = "fish_fingers"))
-  expect_error(extract_timevarying(.debug = TRUE,
+  expect_error(extract_timevarying(connection = con, code_names = "fish_fingers"))
+  expect_error(extract_timevarying(connection = con, 
                                    code_names = hic_codes,
                                    episode_ids = 1,
                                    time_boundaries = c("lemon")))
-  expect_error(extract_timevarying(.debug = TRUE,
+  expect_error(extract_timevarying(connection = con,
                                    code_names = hic_codes,
                                    episode_ids = 1,
                                    time_boundaries = c(Inf, 6)))
-  expect_error(extract_timevarying(.debug = TRUE,
+  expect_error(extract_timevarying(connection = con,
                                    code_names = hic_codes,
                                    episode_ids = 1,
                                    time_boundaries = c(-Inf, -6)))
 })
 
-ltb1 <- extract_timevarying(.debug = TRUE,
-                           code_names = hic_codes,
-                           rename = new_labels,
-                           episode_ids = 1:10)
+ltb1 <- extract_timevarying(connection = con,
+                            code_names = hic_codes,
+                            rename = new_labels,
+                            episode_ids = 1:10)
 
 test_that("Table properties are correct", {
   expect_true(tibble::is_tibble(ltb1))
@@ -37,10 +38,10 @@ test_that("Table properties are correct", {
 hic_codes <- c("NIHR_HIC_ICU_0116")
 new_labels <- c("cvp")
 
-ltb_meta <- extract_timevarying(.debug = TRUE,
-                           code_names = hic_codes,
-                           rename = new_labels,
-                           episode_ids = 1:10)
+ltb_meta <- extract_timevarying(connection = con,
+                                code_names = hic_codes,
+                                rename = new_labels,
+                                episode_ids = 1:10)
 
 test_that("Meta-data placed correctly into columns", {
   expect_true(tibble::is_tibble(ltb_meta))
@@ -55,11 +56,11 @@ test_that("Meta-data placed correctly into columns", {
 hic_codes <- c("NIHR_HIC_ICU_0108", "NIHR_HIC_ICU_0126")
 new_labels <- c("heart_rate", "airway")
 
-ltb_chunk <- extract_timevarying(.debug = TRUE,
-                           code_names = hic_codes,
-                           rename = new_labels,
-                           episode_ids = 1:10,
-                           chunk_size = 5)
+ltb_chunk <- extract_timevarying(connection = con,
+                                 code_names = hic_codes,
+                                 rename = new_labels,
+                                 episode_ids = 1:10,
+                                 chunk_size = 5)
 
 test_that("Chunking doesn't effect outcome", {
   expect_identical(ltb1, ltb_chunk)
@@ -72,11 +73,11 @@ test_that("Chunking doesn't effect outcome", {
 hic_codes <- c("NIHR_HIC_ICU_0108", "NIHR_HIC_ICU_0126")
 new_labels <- c("heart_rate", "airway")
 
-ltb <- extract_timevarying(.debug = TRUE,
-                            code_names = hic_codes,
-                            rename = new_labels,
-                            episode_ids = 1:10,
-                            time_boundaries = c(-Inf, 6))
+ltb <- extract_timevarying(connection = con,
+                           code_names = hic_codes,
+                           rename = new_labels,
+                           episode_ids = 1:10,
+                           time_boundaries = c(-Inf, 6))
 
 test_that("Time boundaries are respected", {
   expect_lte(max(ltb$time), 6)
@@ -86,17 +87,17 @@ test_that("Time boundaries are respected", {
   )
 })
 
-ltb_24 <- extract_timevarying(.debug = TRUE,
-                           code_names = hic_codes,
-                           rename = new_labels,
-                           episode_ids = 1:10,
-                           cadence = 24)
+ltb_24 <- extract_timevarying(connection = con,
+                              code_names = hic_codes,
+                              rename = new_labels,
+                              episode_ids = 1:10,
+                              cadence = 24)
 
-ltb_05 <- extract_timevarying(.debug = TRUE,
-                           code_names = hic_codes,
-                           rename = new_labels,
-                           episode_ids = 1:10,
-                           cadence = 0.5)
+ltb_05 <- extract_timevarying(connection = con,
+                              code_names = hic_codes,
+                              rename = new_labels,
+                              episode_ids = 1:10,
+                              cadence = 0.5)
 
 test_that("cadence works as expected", {
   expect_true(all(ltb_24$time %% 24 == 0))
@@ -112,10 +113,10 @@ test_that("cadence works as expected", {
 })
 
 
-ltb <- extract_timevarying(.debug = TRUE,
-                            code_names = hic_codes,
-                            rename = new_labels,
-                            episode_ids = 1:10,
+ltb <- extract_timevarying(connection = con,
+                           code_names = hic_codes,
+                           rename = new_labels,
+                           episode_ids = 1:10,
                            cadence = 0)
 
 test_that("time exact extraction works", {
@@ -127,7 +128,7 @@ test_that("time exact extraction works", {
   expect_identical(names(ltb)[1:2], c("episode_id", "time"))
 })
 
-ltb <- extract_timevarying(.debug = TRUE,
+ltb <- extract_timevarying(connection = con,
                            code_names = hic_codes,
                            rename = new_labels,
                            episode_ids = 1:10,

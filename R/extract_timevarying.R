@@ -59,8 +59,6 @@
 #'   extraction should occur. For example, \code{c(0, 24)} will return the first
 #'   24 hours of data after admission. The default \code{c(-Inf, Inf)} will
 #'   return all data.
-#' @param .debug logical flag. If \code{TRUE} the function will extract from
-#'  internal package test data
 #'
 #' @return sparse tibble with an hourly cadence as rows, and unique data items
 #'   as columns. Data items that contain metadata are reallocated to their own
@@ -77,18 +75,14 @@
 #' @importFrom magrittr %>%
 #'
 #' @examples
-#' \dontrun{
+#' con <- setup_dummy_db()
 #' ctn <- DBI::dbConnect(
-#'   drv = RPostgres::Postgres(),
-#'   dbname = "cchic",
-#'   host = "server",
-#'   port = 5432,
-#'   user = "me",
-#'   password = "mypass"
+#' df <- extract_timevarying(
+#'   connection = con,
+#'   episode_ids = 1:10,
+#'   code_names = "NIHR_HIC_ICU_0108"
 #'   )
-#' ids <- 1:10
-#' df <- extract_timevarying(ctn, ids, code_names = "NIHR_HIC_ICU_0108")
-#' }
+#' head(df)
 extract_timevarying <- function(connection = NULL,
                                 episode_ids = NA_integer_,
                                 code_names = NA_character_,
@@ -96,20 +90,14 @@ extract_timevarying <- function(connection = NULL,
                                 coalesce_rows = dplyr::first,
                                 chunk_size = 5000,
                                 cadence = 1,
-                                time_boundaries = c(-Inf, Inf),
-                                .debug = FALSE) {
+                                time_boundaries = c(-Inf, Inf)) {
 
-  if (is.null(connection) && !.debug) {
+  if (is.null(connection)) {
     abort("You must supply a database connection")
   }
 
-  if (.debug) {
-    events <- .events
-    variables <- .variables
-  } else {
-    events <- tbl(connection, "events")
-    variables <- tbl(connection, "variables")
-  }
+  events <- tbl(connection, "events")
+  variables <- tbl(connection, "variables")
 
   starting <- Sys.time()
 

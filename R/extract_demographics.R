@@ -10,8 +10,6 @@
 #' @param code_names a character vector of CC-HIC codes
 #' @param rename a character vector of names you want to relabel CC-HIC codes
 #'   as, or NULL (the default) if you do not want to relabel.
-#' @param .debug logical flag. If \code{TRUE} the function will extract from
-#'  internal package test data
 #'
 #' @export
 #'
@@ -26,23 +24,19 @@
 #' @examples
 #' hic_codes <- "NIHR_HIC_ICU_0409"
 #' new_labels <- "apache_score"
+#' con <- setup_dummy_db()
 #' dtb <- extract_demographics(
-#'   connection = NULL,
+#'   connection = con,
 #'   episode_ids = 1:10,
-#'   hic_codes,
-#'   new_labels,
-#'   .debug = TRUE)
+#'   code_names = hic_codes,
+#'   rename = new_labels)
 #' head(dtb)
 extract_demographics <- function(connection = NULL,
                                  episode_ids = NA_integer_,
                                  code_names = NA_character_,
-                                 rename = NA_character_
-                                 #,.debug = FALSE
-                                 ) {
+                                 rename = NA_character_) {
 
-  if (is.null(connection)
-      #&& !.debug
-      ) {
+  if (is.null(connection)) {
     abort("You must supply a database connection")
   }
 
@@ -52,14 +46,8 @@ extract_demographics <- function(connection = NULL,
   }
 
   code_names <- unique(code_names)
-
-  #if (.debug) {
-  #  variables <- .variables
-  #  events <- .events
-  #} else {
-    variables <- tbl(connection, "variables")
-    events <- tbl(connection, "events")
-  #}
+  variables <- tbl(connection, "variables")
+  events <- tbl(connection, "events")
 
   demographics <- variables %>%
     collect() %>%

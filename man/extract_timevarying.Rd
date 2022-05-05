@@ -12,8 +12,7 @@ extract_timevarying(
   coalesce_rows = dplyr::first,
   chunk_size = 5000,
   cadence = 1,
-  time_boundaries = c(-Inf, Inf),
-  .debug = FALSE
+  time_boundaries = c(-Inf, Inf)
 )
 }
 \arguments{
@@ -50,9 +49,6 @@ end times (in hours) relative to the ICU admission time, for which the data
 extraction should occur. For example, \code{c(0, 24)} will return the first
 24 hours of data after admission. The default \code{c(-Inf, Inf)} will
 return all data.}
-
-\item{.debug}{logical flag. If \code{TRUE} the function will extract from
-internal package test data}
 }
 \value{
 sparse tibble with an hourly cadence as rows, and unique data items
@@ -95,16 +91,12 @@ normal behaviour and it is left to the end user to determine how best they
 wish to account for this.
 }
 \examples{
-\dontrun{
+con <- setup_dummy_db()
 ctn <- DBI::dbConnect(
-  drv = RPostgres::Postgres(),
-  dbname = "cchic",
-  host = "server",
-  port = 5432,
-  user = "me",
-  password = "mypass"
+df <- extract_timevarying(
+  connection = con,
+  episode_ids = 1:10,
+  code_names = "NIHR_HIC_ICU_0108"
   )
-ids <- 1:10
-df <- extract_timevarying(ctn, ids, code_names = "NIHR_HIC_ICU_0108")
-}
+head(df)
 }

@@ -33,13 +33,10 @@ provides data quality evaluation for the CC-HIC.
 ``` r
 # install directly from github with
 remotes::install_github("DocEd/wranglEHR")
+library(wranglEHR)
 ```
 
 ## Usage
-
-``` r
-library(wranglEHR)
-```
 
 ``` r
 # Connect to the database (will use the internal test db)
@@ -70,8 +67,8 @@ ltb <- extract_timevarying(
   episode_ids = 1:10,
   code_names = "NIHR_HIC_ICU_0108",
   rename = "hr")
-#> 0.00029 hours to process
-#> YEAH! How best was that?!
+#> 3e-04 hours to process
+#> WEE! How sublime was that?!
 
 head(ltb)
 #> # A tibble: 6 × 3
@@ -97,8 +94,8 @@ ltb_2 <- extract_timevarying(
   coalesce_rows = mean, # use mean to downsample to our 2 hour cadence
   time_boundaries = c(0, 24)
   )
-#> 0.00031 hours to process
-#> YOW! How best was that?!
+#> 0.00026 hours to process
+#> HUZZAH! How cat's meow was that?!
 
 head(ltb_2)
 #> # A tibble: 6 × 3

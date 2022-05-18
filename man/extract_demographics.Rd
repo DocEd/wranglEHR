@@ -40,4 +40,5 @@ dtb <- extract_demographics(
   code_names = hic_codes,
   rename = new_labels)
 head(dtb)
+DBI::dbDisconnect(con)
 }

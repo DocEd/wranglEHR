@@ -31,6 +31,7 @@
 #'   code_names = hic_codes,
 #'   rename = new_labels)
 #' head(dtb)
+#' DBI::dbDisconnect(con)
 extract_demographics <- function(connection = NULL,
                                  episode_ids = NA_integer_,
                                  code_names = NA_character_,

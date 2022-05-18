@@ -1,4 +1,4 @@
-#' Setip Dummy DB
+#' Setup Dummy DB
 #' 
 #' Creates an in-memory SQLite database for testing purposes
 #'
@@ -9,9 +9,16 @@
 #'
 #' @return an SQLite in-memory database
 #' @export
+#' 
+#' @examples
+#' con <- setup_dummy_db()
+#' res <- DBI::dbSendQuery(con, "SELECT * FROM episodes LIMIT 10")
+#' DBI::dbFetch(res)
+#' DBI::dbClearResult(res)
+#' DBI::dbDisconnect(con)
 setup_dummy_db <- function() {
   
-  conn <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+  conn <- DBI::dbConnect(RSQLite::SQLite(), "")
   
   events <- .events %>%
     dplyr::mutate(

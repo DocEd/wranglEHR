@@ -25,7 +25,8 @@ Imports:
     rlang,
     tibble,
     tidyr,
-    hms
+    hms,
+    RSQLite
 RoxygenNote: 7.1.2
 Suggests:
     praise,

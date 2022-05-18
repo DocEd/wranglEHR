@@ -18,6 +18,10 @@ options(tibble.print_min = 5, tibble.print_max = 5)
 
 # wranglEHR <a href='https://cc-hic.github.io/inspectEHR/'><img src='logo.png' align="right" height="139" /></a>
 
+```{r setup, include = FALSE}
+pkgload::load_all()
+```
+
 <!-- badges: start -->
 [![Lifecycle Status](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/)
 [![R-CMD-check](https://github.com/DocEd/wranglEHR/workflows/R-CMD-check/badge.svg)](https://github.com/DocEd/wranglEHR/actions)
@@ -44,17 +48,10 @@ data quality evaluation for the CC-HIC.
 ```{r, eval = FALSE}
 # install directly from github with
 remotes::install_github("DocEd/wranglEHR")
+library(wranglEHR)
 ```
 
 ## Usage
-
-```{r, include = FALSE}
-devtools::load_all()
-```
-
-```r
-library(wranglEHR)
-```
 
 ```{r}
 # Connect to the database (will use the internal test db)

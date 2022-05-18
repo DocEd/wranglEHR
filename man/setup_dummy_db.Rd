@@ -12,3 +12,10 @@ an SQLite in-memory database
 \description{
 Creates an in-memory SQLite database for testing purposes
 }
+\examples{
+con <- setup_dummy_db()
+res <- DBI::dbSendQuery(con, "SELECT * FROM episodes LIMIT 10")
+DBI::dbFetch(res)
+DBI::dbClearResult(res)
+DBI::dbDisconnect(con)
+}

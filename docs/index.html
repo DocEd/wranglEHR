@@ -94,14 +94,13 @@
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># install directly from github with</span>
-<span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"DocEd/wranglEHR"</span><span class="op">)</span></code></pre></div>
+<span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"DocEd/wranglEHR"</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CC-HIC/wranglEHR" class="external-link">wranglEHR</a></span><span class="op">)</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CC-HIC/wranglEHR" class="external-link">wranglEHR</a></span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Connect to the database (will use the internal test db)</span>
 <span class="va">ctn</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/setup_dummy_db.html">setup_dummy_db</a></span><span class="op">(</span><span class="op">)</span>
 
@@ -130,8 +129,8 @@
   episode_ids <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,
   code_names <span class="op">=</span> <span class="st">"NIHR_HIC_ICU_0108"</span>,
   rename <span class="op">=</span> <span class="st">"hr"</span><span class="op">)</span>
-<span class="co">#&gt; 0.00029 hours to process</span>
-<span class="co">#&gt; YEAH! How best was that?!</span>
+<span class="co">#&gt; 3e-04 hours to process</span>
+<span class="co">#&gt; WEE! How sublime was that?!</span>
 
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ltb</span><span class="op">)</span>
 <span class="co">#&gt; # A tibble: 6 × 3</span>
@@ -157,8 +156,8 @@
   coalesce_rows <span class="op">=</span> <span class="va">mean</span>, <span class="co"># use mean to downsample to our 2 hour cadence</span>
   time_boundaries <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span><span class="op">)</span>
   <span class="op">)</span>
-<span class="co">#&gt; 0.00031 hours to process</span>
-<span class="co">#&gt; YOW! How best was that?!</span>
+<span class="co">#&gt; 0.00026 hours to process</span>
+<span class="co">#&gt; HUZZAH! How cat's meow was that?!</span>
 
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ltb_2</span><span class="op">)</span>
 <span class="co">#&gt; # A tibble: 6 × 3</span>

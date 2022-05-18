@@ -92,11 +92,11 @@ wish to account for this.
 }
 \examples{
 con <- setup_dummy_db()
-ctn <- DBI::dbConnect(
 df <- extract_timevarying(
   connection = con,
   episode_ids = 1:10,
   code_names = "NIHR_HIC_ICU_0108"
   )
 head(df)
+DBI::dbDisconnect(con)
 }
